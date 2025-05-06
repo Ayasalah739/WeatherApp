@@ -66,7 +66,7 @@ class ForecastActivity : AppCompatActivity() {
                 binding.windText.text = "Wind: ${forecast.windSpeed} km/h"
 
                 val iconResId = when (forecast.icon) {
-                    "clear-day" -> R.drawable.partly_day0
+                    "clear-day" -> R.drawable.partly_day
                     "clear-night" -> R.drawable.clear_night
                     "rain" -> R.drawable.rain
                     "snow" -> R.drawable.snow

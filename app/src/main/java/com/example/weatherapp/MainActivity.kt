@@ -128,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         binding.dateText.text = date?.let { outputFormat.format(it) } ?: dateStr
 
         val iconResId = when (currentWeather.icon) {
-            "clear-day" -> R.drawable.partly_day0
+            "clear-day" -> R.drawable.partly_day
             "clear-night" -> R.drawable.clear_night
             "rain" -> R.drawable.rain
             "snow" -> R.drawable.snow
