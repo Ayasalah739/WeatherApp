@@ -67,7 +67,7 @@ class ForecastActivity : AppCompatActivity() {
                 binding.windText.text = "Wind: ${forecast.windSpeed} km/h"
 
                 val iconResId = when (forecast.icon) {
-                    "clear-day" -> R.drawable.partly_day
+                    "clear-day" -> R.drawable.sun
                     "clear-night" -> R.drawable.clear_night
                     "rain" -> R.drawable.rain
                     "snow" -> R.drawable.snow
@@ -77,7 +77,7 @@ class ForecastActivity : AppCompatActivity() {
                     "cloudy" -> R.drawable.cloud
                     "partly-cloudy-day" -> R.drawable.partly_day1
                     "partly-cloudy-night" -> R.drawable.partly_night
-                    else -> R.drawable.sunnyy
+                    else -> R.drawable.sun
                 }
                 binding.weatherIcon.setImageResource(iconResId)
             }

@@ -4,7 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Bundle
+import android.os.*
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var weatherApiHelper: WeatherApiHelper
 
     private val viewModel: WeatherViewModel by viewModels()
+    private var locationTimeoutHandler: Handler? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,7 +87,19 @@ class MainActivity : AppCompatActivity() {
         binding.weatherContainer.visibility = View.GONE
         binding.errorView.visibility = View.GONE
 
+        locationService.stopListening()
+
+        locationTimeoutHandler = Handler(Looper.getMainLooper())
+        locationTimeoutHandler?.postDelayed({
+            binding.swipeRefreshLayout.isRefreshing = false
+            binding.progressBar.visibility = View.GONE
+            binding.errorView.visibility = View.VISIBLE
+            binding.errorView.text = "Unable to get location (timeout)"
+            locationService.stopListening()
+        }, 5000)
+
         locationService.startListening(this) { location ->
+            locationTimeoutHandler?.removeCallbacksAndMessages(null)
             if (location.latitude != 0.0 && location.longitude != 0.0) {
                 weatherApiHelper.fetchWeatherData(location.latitude, location.longitude) { result ->
                     runOnUiThread {
@@ -123,9 +136,14 @@ class MainActivity : AppCompatActivity() {
     private fun updateUI(currentWeather: CurrentWeather) {
         binding.temperatureText.text = "${currentWeather.temperature}°C"
         binding.conditionsText.text = currentWeather.conditions
-        binding.feelsLikeText.text = "Feels like: ${currentWeather.feelsLike}°C"
-        binding.humidityText.text = "Humidity: ${currentWeather.humidity}%"
-        binding.windText.text = "Wind: ${currentWeather.windSpeed} km/h"
+
+        binding.feelsLikeValue.text = "${currentWeather.feelsLike}°C"
+        binding.humidityValue.text = "${currentWeather.humidity}%"
+        binding.windValue.text = "${currentWeather.windSpeed} km/h"
+
+        binding.feelsLikeLabel.text = "Feels like"
+        binding.humidityLabel.text = "Humidity"
+        binding.windLabel.text = "Wind"
 
         val dateStr = currentWeather.datetime
         val date: Date? = when {
@@ -145,7 +163,7 @@ class MainActivity : AppCompatActivity() {
         binding.dateText.text = date?.let { outputFormat.format(it) } ?: dateStr
 
         val iconResId = when (currentWeather.icon) {
-            "clear-day" -> R.drawable.partly_day
+            "clear-day" -> R.drawable.sun
             "clear-night" -> R.drawable.clear_night
             "rain" -> R.drawable.rain
             "snow" -> R.drawable.snow
@@ -155,7 +173,7 @@ class MainActivity : AppCompatActivity() {
             "cloudy" -> R.drawable.cloud
             "partly-cloudy-day" -> R.drawable.partly_day1
             "partly-cloudy-night" -> R.drawable.partly_night
-            else -> R.drawable.sunnyy
+            else -> R.drawable.sun
         }
         binding.weatherIcon.setImageResource(iconResId)
     }
@@ -184,6 +202,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         locationService.stopListening()
+        locationTimeoutHandler?.removeCallbacksAndMessages(null)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

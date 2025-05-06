@@ -1,6 +1,7 @@
 package com.example.weatherapp.network
 
 import android.content.Context
+import android.util.Log
 import com.example.weatherapp.WeatherApplication
 import com.example.weatherapp.model.CurrentWeather
 import com.example.weatherapp.model.DailyForecast
@@ -36,6 +37,8 @@ class WeatherApiHelper(private val context: Context) {
                         response.append(line)
                     }
                     reader.close()
+
+                    Log.d("WeatherApiHelper", "API response: $response")
 
                     val weatherData = parseWeatherResponse(response.toString())
                     (context.applicationContext as WeatherApplication).putCache("lastWeatherData", weatherData)
