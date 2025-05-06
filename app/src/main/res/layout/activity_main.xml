@@ -195,19 +195,19 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/viewForecastButton"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="66dp"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="24dp"
-                    android:text="View 5-Day Forecast"
                     android:elevation="0dp"
                     android:paddingHorizontal="20dp"
                     android:paddingVertical="10dp"
+                    android:text="View 5-Day Forecast"
                     android:textColor="@color/navy_blue"
                     android:textSize="16sp"
                     app:backgroundTint="@color/white"
+                    app:cornerRadius="40dp"
                     app:strokeColor="@color/weather_primary"
-                    app:strokeWidth="5dp"
-                    app:cornerRadius="40dp"/>
+                    app:strokeWidth="5dp" />
             </LinearLayout>
         </ScrollView>
     </RelativeLayout>
