@@ -1,4 +1,5 @@
 package com.example.weatherapp.model
+
 import java.io.Serializable
 
 data class WeatherData(
@@ -6,7 +7,7 @@ data class WeatherData(
     val longitude: Double,
     val current: CurrentWeather,
     val forecast: List<DailyForecast>
-)
+) : Serializable
 
 data class CurrentWeather(
     val datetime: String,
@@ -17,8 +18,7 @@ data class CurrentWeather(
     val windDirection: Double,
     val conditions: String,
     val icon: String
-)
-
+) : Serializable
 
 data class DailyForecast(
     val datetime: String,

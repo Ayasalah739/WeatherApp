@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -24,6 +25,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationService: LocationService
     private lateinit var weatherApiHelper: WeatherApiHelper
 
+    private val viewModel: WeatherViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -33,6 +36,19 @@ class MainActivity : AppCompatActivity() {
         weatherApiHelper = WeatherApiHelper(this)
 
         setupUI()
+
+        if (savedInstanceState != null) {
+            val weatherData = savedInstanceState.getSerializable("weatherData") as? WeatherData
+            viewModel.setWeatherData(weatherData)
+        } else {
+            val cachedData = (application as WeatherApplication).getCache("lastWeatherData") as? WeatherData
+            viewModel.setWeatherData(cachedData)
+        }
+
+        viewModel.weatherData.observe(this) { weatherData ->
+            weatherData?.let { updateUI(it.current) }
+        }
+
         checkPermissionsAndFetchWeather()
     }
 
@@ -41,14 +57,11 @@ class MainActivity : AppCompatActivity() {
             checkPermissionsAndFetchWeather()
         }
 
-        val cachedData = (application as WeatherApplication).getCache("lastWeatherData") as? WeatherData
-        cachedData?.let { updateUI(it.current) }
-
         binding.viewForecastButton.setOnClickListener {
-            val cachedData = (application as WeatherApplication).getCache("lastWeatherData") as? WeatherData
-            cachedData?.let { weatherData ->
+            val weatherData = viewModel.weatherData.value
+            weatherData?.let {
                 val intent = Intent(this, ForecastActivity::class.java).apply {
-                    putExtra("forecastData", ArrayList(weatherData.forecast.take(5)))
+                    putExtra("forecastData", ArrayList(it.forecast.take(5)))
                 }
                 startActivity(intent)
             } ?: run {
@@ -79,7 +92,8 @@ class MainActivity : AppCompatActivity() {
 
                         result.onSuccess { weatherData ->
                             binding.weatherContainer.visibility = View.VISIBLE
-                            updateUI(weatherData.current)
+                            viewModel.setWeatherData(weatherData)
+                            (application as WeatherApplication).putCache("lastWeatherData", weatherData)
                         }.onFailure {
                             binding.weatherContainer.visibility = View.GONE
                             binding.errorView.visibility = View.VISIBLE
@@ -167,6 +181,13 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         locationService.stopListening()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        viewModel.weatherData.value?.let {
+            outState.putSerializable("weatherData", it)
+        }
     }
 
     companion object {
