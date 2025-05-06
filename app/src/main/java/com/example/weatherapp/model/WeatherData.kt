@@ -24,6 +24,7 @@ data class DailyForecast(
     val datetime: String,
     val tempMax: Double,
     val tempMin: Double,
+    val temp: Double,
     val conditions: String,
     val icon: String,
     val humidity: Double,

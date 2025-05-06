@@ -80,6 +80,26 @@ class ForecastActivity : AppCompatActivity() {
                     else -> R.drawable.sun
                 }
                 binding.weatherIcon.setImageResource(iconResId)
+
+                val minTemp = forecast.tempMin
+                val maxTemp = forecast.tempMax
+                val currentTemp = forecast.temp
+
+                binding.minTempText.text = String.format("%.1f°", minTemp)
+                binding.maxTempText.text = String.format("%.1f°", maxTemp)
+
+                binding.tempRangeBar.post {
+                    val barWidth = binding.tempRangeBar.width
+                    val markerWidth = binding.currentTempMarker.width
+
+                    if (barWidth > 0 && maxTemp > minTemp) {
+                        val fraction = ((currentTemp - minTemp) / (maxTemp - minTemp)).toFloat().coerceIn(0f, 1f)
+                        val markerPosition = (barWidth * fraction) - (markerWidth / 2f)
+                        binding.currentTempMarker.translationX = binding.tempRangeBar.left + markerPosition
+                    } else {
+                        binding.currentTempMarker.translationX = 0f
+                    }
+                }
             }
         }
     }

@@ -80,6 +80,7 @@ class WeatherApiHelper(private val context: Context) {
                 conditions = day.getString("conditions"),
                 icon = day.getString("icon"),
                 humidity = day.getDouble("humidity"),
+                temp = day.getDouble("temp"),
                 windSpeed = day.getDouble("windspeed")
             ))
         }
