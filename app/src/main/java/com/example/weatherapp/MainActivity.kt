@@ -1,0 +1,181 @@
+package com.example.weatherapp
+
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
+import android.os.Bundle
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.example.weatherapp.databinding.ActivityMainBinding
+import com.example.weatherapp.model.CurrentWeather
+import com.example.weatherapp.model.WeatherData
+import com.example.weatherapp.network.WeatherApiHelper
+import com.example.weatherapp.service.LocationService
+import java.text.SimpleDateFormat
+import java.util.*
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+    private lateinit var locationService: LocationService
+    private lateinit var weatherApiHelper: WeatherApiHelper
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // Initialize services
+        locationService = LocationService()
+        weatherApiHelper = WeatherApiHelper(this)
+
+        setupUI()
+        checkPermissionsAndFetchWeather()
+    }
+
+    private fun setupUI() {
+        // Setup swipe to refresh
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            checkPermissionsAndFetchWeather()
+        }
+
+        // Check cache for existing data
+        val cachedData = (application as WeatherApplication).getCache("lastWeatherData") as? WeatherData
+        cachedData?.let { updateUI(it.current) }
+
+        // Set click listener for forecast button
+        binding.viewForecastButton.setOnClickListener {
+            val cachedData = (application as WeatherApplication).getCache("lastWeatherData") as? WeatherData
+            cachedData?.let { weatherData ->
+                val intent = Intent(this, ForecastActivity::class.java).apply {
+                    putExtra("forecastData", ArrayList(weatherData.forecast))
+                }
+                startActivity(intent)
+            } ?: run {
+                Toast.makeText(this, "No forecast data available", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun checkPermissionsAndFetchWeather() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
+        } else {
+            fetchWeather()
+        }
+    }
+
+    private fun fetchWeather() {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.weatherContainer.visibility = View.GONE
+        binding.errorView.visibility = View.GONE
+
+        locationService.startListening(this) { location ->
+            if (location.latitude != 0.0 && location.longitude != 0.0) {
+                weatherApiHelper.fetchWeatherData(location.latitude, location.longitude) { result ->
+                    runOnUiThread {
+                        binding.swipeRefreshLayout.isRefreshing = false
+                        binding.progressBar.visibility = View.GONE
+
+                        result.onSuccess { weatherData ->
+                            binding.weatherContainer.visibility = View.VISIBLE
+                            updateUI(weatherData.current)
+                        }.onFailure {
+                            binding.weatherContainer.visibility = View.GONE
+                            binding.errorView.visibility = View.VISIBLE
+                            binding.errorView.text = if (isNetworkAvailable()) {
+                                "Failed to fetch weather data"
+                            } else {
+                                "No internet connection"
+                            }
+                        }
+                    }
+                }
+            } else {
+                runOnUiThread {
+                    binding.swipeRefreshLayout.isRefreshing = false
+                    binding.progressBar.visibility = View.GONE
+                    binding.weatherContainer.visibility = View.GONE
+                    binding.errorView.visibility = View.VISIBLE
+                    binding.errorView.text = "Unable to get location"
+                }
+            }
+        }
+    }
+
+    private fun updateUI(currentWeather: CurrentWeather) {
+        binding.temperatureText.text = "${currentWeather.temperature}°C"
+        binding.conditionsText.text = currentWeather.conditions
+        binding.feelsLikeText.text = "Feels like: ${currentWeather.feelsLike}°C"
+        binding.humidityText.text = "Humidity: ${currentWeather.humidity}%"
+        binding.windText.text = "Wind: ${currentWeather.windSpeed} km/h"
+
+        val dateStr = currentWeather.datetime
+        val date: Date? = when {
+            dateStr.matches(Regex("\\d{2}:\\d{2}:\\d{2}")) -> {
+                val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse("${today}T${dateStr}")
+            }
+            dateStr.matches(Regex("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}")) -> {
+                SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).parse(dateStr)
+            }
+            dateStr.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) -> {
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr)
+            }
+            else -> null
+        }
+        val outputFormat = SimpleDateFormat("EEE, MMM d, h:mm a", Locale.getDefault())
+        binding.dateText.text = date?.let { outputFormat.format(it) } ?: dateStr
+
+        // Set weather icon
+        val iconResId = when (currentWeather.icon) {
+            "clear-day" -> R.drawable.sun
+            "clear-night" -> R.drawable.clear_night
+            "rain" -> R.drawable.rain
+            "snow" -> R.drawable.snow
+            "sleet" -> R.drawable.sleet
+            "wind" -> R.drawable.wind
+            "fog" -> R.drawable.fog
+            "cloudy" -> R.drawable.cloud
+            "partly-cloudy-day" -> R.drawable.partly_day
+            "partly-cloudy-night" -> R.drawable.partly_night
+            else -> R.drawable.sun
+        }
+        binding.weatherIcon.setImageResource(iconResId)
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                fetchWeather()
+            } else {
+                Toast.makeText(this, "Location permission is required to fetch weather", Toast.LENGTH_SHORT).show()
+                binding.swipeRefreshLayout.isRefreshing = false
+                binding.progressBar.visibility = View.GONE
+                binding.errorView.visibility = View.VISIBLE
+                binding.errorView.text = "Location permission denied"
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        locationService.stopListening()
+    }
+
+    companion object {
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
+    }
+}
