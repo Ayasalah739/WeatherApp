@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -30,7 +29,6 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Initialize services
         locationService = LocationService()
         weatherApiHelper = WeatherApiHelper(this)
 
@@ -39,21 +37,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        // Setup swipe to refresh
         binding.swipeRefreshLayout.setOnRefreshListener {
             checkPermissionsAndFetchWeather()
         }
 
-        // Check cache for existing data
         val cachedData = (application as WeatherApplication).getCache("lastWeatherData") as? WeatherData
         cachedData?.let { updateUI(it.current) }
 
-        // Set click listener for forecast button
         binding.viewForecastButton.setOnClickListener {
             val cachedData = (application as WeatherApplication).getCache("lastWeatherData") as? WeatherData
             cachedData?.let { weatherData ->
                 val intent = Intent(this, ForecastActivity::class.java).apply {
-                    putExtra("forecastData", ArrayList(weatherData.forecast))
+                    putExtra("forecastData", ArrayList(weatherData.forecast.take(5)))
                 }
                 startActivity(intent)
             } ?: run {
@@ -132,9 +127,8 @@ class MainActivity : AppCompatActivity() {
         val outputFormat = SimpleDateFormat("EEE, MMM d, h:mm a", Locale.getDefault())
         binding.dateText.text = date?.let { outputFormat.format(it) } ?: dateStr
 
-        // Set weather icon
         val iconResId = when (currentWeather.icon) {
-            "clear-day" -> R.drawable.sun
+            "clear-day" -> R.drawable.partly_day0
             "clear-night" -> R.drawable.clear_night
             "rain" -> R.drawable.rain
             "snow" -> R.drawable.snow
@@ -142,9 +136,9 @@ class MainActivity : AppCompatActivity() {
             "wind" -> R.drawable.wind
             "fog" -> R.drawable.fog
             "cloudy" -> R.drawable.cloud
-            "partly-cloudy-day" -> R.drawable.partly_day
+            "partly-cloudy-day" -> R.drawable.partly_day1
             "partly-cloudy-night" -> R.drawable.partly_night
-            else -> R.drawable.sun
+            else -> R.drawable.sunnyy
         }
         binding.weatherIcon.setImageResource(iconResId)
     }

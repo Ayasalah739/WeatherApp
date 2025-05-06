@@ -47,7 +47,7 @@
                     android:id="@+id/weatherIcon"
                     android:layout_width="64dp"
                     android:layout_height="64dp"
-                    android:src="@drawable/sun"/>
+                    android:src="@drawable/sunnyy"/>
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -103,10 +103,13 @@
 
             <Button
                 android:id="@+id/viewForecastButton"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="View 5-Day Forecast"/>
+                android:text="View 5-Day Forecast"
+                android:background="@drawable/rounded_button"
+                android:textColor="@android:color/white"
+                android:layout_gravity="center_horizontal"/>
         </LinearLayout>
     </RelativeLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

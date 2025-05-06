@@ -10,4 +10,5 @@
     <color name="blue_sky">#87CEEB</color>
     <color name="dark_blue">#1E88E5</color>
     <color name="light_gray">#F5F5F5</color>
+    <color name="weather_primary">#89CFF0</color>
 </resources>

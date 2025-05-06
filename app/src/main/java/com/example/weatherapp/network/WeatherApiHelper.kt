@@ -13,7 +13,7 @@ import java.net.URL
 class WeatherApiHelper(private val context: Context) {
 
     companion object {
-        private const val API_KEY = "ESB4PCSMMMRZP2UZ37DQEMYXC" // Replace with your VisualCrossing API key
+        private const val API_KEY = "ESB4PCSMMMRZP2UZ37DQEMYXC"
         private const val BASE_URL = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/"
     }
 
@@ -54,7 +54,6 @@ class WeatherApiHelper(private val context: Context) {
         val latitude = jsonObject.getDouble("latitude")
         val longitude = jsonObject.getDouble("longitude")
 
-        // Parse current weather
         val current = jsonObject.getJSONObject("currentConditions")
         val currentWeather = CurrentWeather(
             datetime = current.getString("datetime"),
@@ -67,7 +66,6 @@ class WeatherApiHelper(private val context: Context) {
             icon = current.getString("icon")
         )
 
-        // Parse forecast
         val daysArray = jsonObject.getJSONArray("days")
         val forecast = mutableListOf<DailyForecast>()
         for (i in 0 until daysArray.length()) {
