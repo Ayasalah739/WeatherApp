@@ -18,11 +18,11 @@
         android:theme="@style/Theme.WeatherTracker"
         tools:targetApi="31">
         <activity
-            android:name=".ForecastActivity"
+            android:name=".ui.ForecastActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden">
             <intent-filter>

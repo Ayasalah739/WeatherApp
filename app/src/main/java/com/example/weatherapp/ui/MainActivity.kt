@@ -1,4 +1,4 @@
-package com.example.weatherapp
+package com.example.weatherapp.ui
 
 import android.Manifest
 import android.content.Context
@@ -11,11 +11,14 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.example.weatherapp.R
+import com.example.weatherapp.WeatherApplication
 import com.example.weatherapp.databinding.ActivityMainBinding
 import com.example.weatherapp.model.CurrentWeather
 import com.example.weatherapp.model.WeatherData
 import com.example.weatherapp.network.WeatherApiHelper
 import com.example.weatherapp.service.LocationService
+import com.example.weatherapp.viewmodel.WeatherViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 

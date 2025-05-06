@@ -1,4 +1,4 @@
-package com.example.weatherapp
+package com.example.weatherapp.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.weatherapp.R
 import com.example.weatherapp.databinding.ActivityForecastBinding
 import com.example.weatherapp.databinding.ItemForecastBinding
 import com.example.weatherapp.model.DailyForecast
