@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.*
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -176,6 +177,27 @@ class MainActivity : AppCompatActivity() {
             else -> R.drawable.sun
         }
         binding.weatherIcon.setImageResource(iconResId)
+
+        val weatherData = viewModel.weatherData.value
+        val todayForecast = weatherData?.forecast?.firstOrNull()
+        val minTemp = todayForecast?.tempMin ?: 0.0
+        val maxTemp = todayForecast?.tempMax ?: 40.0
+        val currentTemp = currentWeather.temperature
+
+        binding.minTempText.text = "${minTemp}°"
+        binding.maxTempText.text = "${maxTemp}°"
+
+        val percent = ((currentTemp - minTemp) / (maxTemp - minTemp).toFloat()).coerceIn(0.0, 40.0)
+
+        binding.tempRangeBar.post {
+            val barWidth = binding.tempRangeBar.width
+            val marker = binding.currentTempMarker
+            val markerWidth = marker.width
+            val leftMargin = (barWidth * percent - markerWidth / 2).toInt()
+            val params = marker.layoutParams as FrameLayout.LayoutParams
+            params.leftMargin = leftMargin
+            marker.layoutParams = params
+        }
     }
 
     private fun isNetworkAvailable(): Boolean {

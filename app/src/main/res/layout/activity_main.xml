@@ -85,6 +85,54 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/minTempText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="14°"
+                        android:textSize="18sp"
+                        android:textColor="#90A4AE"
+                        android:layout_marginEnd="8dp"/>
+
+                    <FrameLayout
+                        android:layout_width="0dp"
+                        android:layout_height="12dp"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent">
+
+                        <View
+                            android:id="@+id/tempRangeBar"
+                            android:layout_width="match_parent"
+                            android:layout_height="6dp"
+                            android:layout_gravity="center_vertical"
+                            android:background="@drawable/temp_range_gradient"/>
+
+                        <View
+                            android:id="@+id/currentTempMarker"
+                            android:layout_width="12dp"
+                            android:layout_height="12dp"
+                            android:layout_gravity="center_vertical"
+                            android:background="@drawable/current_temp_marker"/>
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/maxTempText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="33°"
+                        android:textSize="18sp"
+                        android:textColor="#90A4AE"
+                        android:layout_marginStart="8dp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
                     android:gravity="center"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="16dp">
