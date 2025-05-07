@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
 
+        // Restore saved state or load cached weather data
         if (savedInstanceState != null) {
             val weatherData = savedInstanceState.getSerializable("weatherData") as? WeatherData
             viewModel.setWeatherData(weatherData)
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.setWeatherData(cachedData)
         }
 
+        // Observe weather data updates and refresh UI
         viewModel.weatherData.observe(this) { weatherData ->
             weatherData?.let { updateUI(it.current) }
         }
@@ -58,10 +60,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
+        // Pull-to-refresh triggers weather reload
         binding.swipeRefreshLayout.setOnRefreshListener {
             checkPermissionsAndFetchWeather()
         }
 
+        // Button opens forecast screen with the next 5 days of data
         binding.viewForecastButton.setOnClickListener {
             val weatherData = viewModel.weatherData.value
             weatherData?.let {
@@ -76,6 +80,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkPermissionsAndFetchWeather() {
+        // Ask for location permission if not already granted
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
         } else {
@@ -84,12 +89,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun fetchWeather() {
+        // Hide old data and show loading spinner
         binding.progressBar.visibility = View.VISIBLE
         binding.weatherContainer.visibility = View.GONE
         binding.errorView.visibility = View.GONE
 
         locationService.stopListening()
 
+        // Fallback if location takes too long to get
         locationTimeoutHandler = Handler(Looper.getMainLooper())
         locationTimeoutHandler?.postDelayed({
             binding.swipeRefreshLayout.isRefreshing = false
@@ -99,9 +106,11 @@ class MainActivity : AppCompatActivity() {
             locationService.stopListening()
         }, 5000)
 
+        // Start listening for GPS update
         locationService.startListening(this) { location ->
             locationTimeoutHandler?.removeCallbacksAndMessages(null)
             if (location.latitude != 0.0 && location.longitude != 0.0) {
+                // Fetch weather from API when valid coordinates are received
                 weatherApiHelper.fetchWeatherData(location.latitude, location.longitude) { result ->
                     runOnUiThread {
                         binding.swipeRefreshLayout.isRefreshing = false
@@ -123,6 +132,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             } else {
+                // Invalid location result
                 runOnUiThread {
                     binding.swipeRefreshLayout.isRefreshing = false
                     binding.progressBar.visibility = View.GONE
@@ -135,6 +145,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI(currentWeather: CurrentWeather) {
+        // Set weather values on screen
         binding.temperatureText.text = "${currentWeather.temperature}°C"
         binding.conditionsText.text = currentWeather.conditions
 
@@ -146,6 +157,7 @@ class MainActivity : AppCompatActivity() {
         binding.humidityLabel.text = "Humidity"
         binding.windLabel.text = "Wind"
 
+        // Format and show current date
         val dateStr = currentWeather.datetime
         val date: Date? = when {
             dateStr.matches(Regex("\\d{2}:\\d{2}:\\d{2}")) -> {
@@ -163,6 +175,7 @@ class MainActivity : AppCompatActivity() {
         val outputFormat = SimpleDateFormat("EEE, MMM d, h:mm a", Locale.getDefault())
         binding.dateText.text = date?.let { outputFormat.format(it) } ?: dateStr
 
+        // Show weather icon based on condition
         val iconResId = when (currentWeather.icon) {
             "clear-day" -> R.drawable.sun
             "clear-night" -> R.drawable.clear_night
@@ -178,6 +191,7 @@ class MainActivity : AppCompatActivity() {
         }
         binding.weatherIcon.setImageResource(iconResId)
 
+        // Visual temp range bar setup
         val weatherData = viewModel.weatherData.value
         val todayForecast = weatherData?.forecast?.firstOrNull()
         val minTemp = todayForecast?.tempMin ?: 0.0
@@ -187,6 +201,7 @@ class MainActivity : AppCompatActivity() {
         binding.minTempText.text = "${minTemp}°"
         binding.maxTempText.text = "${maxTemp}°"
 
+        // Position marker on the temp range bar
         val percent = ((currentTemp - minTemp) / (maxTemp - minTemp).toFloat()).coerceIn(0.0, 40.0)
 
         binding.tempRangeBar.post {
@@ -206,6 +221,7 @@ class MainActivity : AppCompatActivity() {
         return networkInfo != null && networkInfo.isConnected
     }
 
+    // Handle location permission result
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
@@ -227,6 +243,7 @@ class MainActivity : AppCompatActivity() {
         locationTimeoutHandler?.removeCallbacksAndMessages(null)
     }
 
+    // Save current weather in case of configuration change
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         viewModel.weatherData.value?.let {
